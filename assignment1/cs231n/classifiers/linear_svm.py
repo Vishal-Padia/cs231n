@@ -39,6 +39,12 @@ def svm_loss_naive(W, X, y, reg):
             if margin > 0:
                 loss += margin
 
+                # gradient computation
+                # for incorrect classes
+                dW[:, j] += X[i]
+                # for correct classes
+                dW[:, j] -= X[i]
+
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
     loss /= num_train
@@ -56,7 +62,9 @@ def svm_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dW /= num_train
+
+    dW += 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -79,7 +87,12 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = len(y) # number of samples
+    Y_hat = X @ W # raw scores matrix
+
+    y_hat_true = Y_hat[range(N),y][:, np.newaxis]
+    margins = np.maximum(0, Y_hat - y_hat_true + 1)
+    loss = margins.sum() / N - 1 + reg * np.sum(W**2)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -94,7 +107,9 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dW = (margins > 0).astype(int)    # initial gradient with respect to Y_hat
+    dW[range(N), y] -= dW.sum(axis=1) # update gradient to include correct labels
+    dW = X.T @ dW / N + 2 * reg * W   # gradient with respect to W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 

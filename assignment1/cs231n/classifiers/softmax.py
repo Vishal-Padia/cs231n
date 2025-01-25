@@ -35,7 +35,18 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = X.shape[0] # num of samples
+
+    for i in range(N):
+        y_hat = X[i] @ W # raw scores vector
+        y_exp = np.exp(y_hat - y_hat.max()) # numerically stable exponent vector
+        softmax = y_exp / y_exp.sum() # pure softmax for each score
+        loss -= np.log(softmax[y[i]]) # append cross-entropy
+        softmax[y[i]] -= 1 # update gradient
+        dW += np.outer(X[i], softmax) # gradient
+      
+    loss = loss / N + reg * np.sum(W**2) # average loss and computation
+    dW = dW / N + 2 * reg * W # finish calculating gradient 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -60,7 +71,18 @@ def softmax_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = X.shape[0] # num of samples
+    Y_hat = X @ W # raw scores matrix
+
+    P = np.exp(Y_hat - Y_hat.max()) # numerically stable exponents
+    P /= P.sum(axis=1, keepdims=True) # row-wise probabilities
+
+    loss = -np.log(P[range(N), y]).sum() # sum cross entropies as loss
+    loss = loss / N + reg * np.sum(W**2) # average loss
+
+    P[range(N), y] -= 1 # update P for gradient
+    dW = X.T @ P / N + 2 * reg * W # calculate gradient
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
